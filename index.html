@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charts</title>
+    <link href="./libs/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="invisible overflow-hidden flex flex-col w-full h-full bg-gray-100" x-data="main()" x-init="init">
+
+    <div x-show="modalOpen" class="z-10">
+        <div class="absolute inset-0 w-full h-full bg-black opacity-40"></div>
+        <div class="flex justify-center items-center absolute inset-0 w-full h-full ">
+            <div class="flex space-x-4">
+
+                <div class="flex flex-col bg-white rounded-xl p-8 max-w-md">
+                    <h1 class="text-2xl font-semibold">About</h1>
+                    <p class="mb-4">
+                        There are many ways to send data from the server to the client in real-time. We did some performance testing to get a better understanding for each of there methods and find out which is the fastest, most reliable and least intensive for the server and the client.
+                    </p>
+                    <p class="mb-4">
+                        This webpage was created to easily visualize the results of the performance tests in clear and understandable graphs.
+                    </p>
+                    <p>View <a href="#" class="text-blue-500 hover:underline hover:text-blue-600 cursor-pointer">README.md</a> for more information.</p>
+                </div>
+
+                <div @click.away="if (selectedExportFile != null) modalOpen = false" class="flex flex-col bg-white rounded-xl p-8">
+
+                    <div x-show="exportFiles.length > 0" class="flex flex-col space-y-3">
+                        <span class="text-gray-800 text-xl">
+                            Select Export file to load:
+                        </span>
+                        
+                        <div class="flex flex-col h-96 space-y-3 overflow-y-auto">
+                            <template x-for="exportFile in exportFiles" :key="exportFile">
+                                <div @click="selectExportFile(exportFile)" class="flex bg-gray-200 hover:bg-gray-300 cursor-pointer p-4 border rounded items-center">
+                                    
+                                    <div 
+                                        x-show="exportFile != selectedExportFile" 
+                                        class="w-5 h-5 bg-white rounded-full mr-2">
+                                    </div>
+    
+                                    <div 
+                                        x-show="exportFile == selectedExportFile" 
+                                        class="w-5 h-5 bg-green-500 rounded-full mr-2 text-white flex justify-center items-center"
+                                        >
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+    
+                                    <span x-text="exportFile.name"></span>
+                                </div>
+                            </template>
+                        </div>
+
+                    </div>
+
+                    <div x-show="exportFiles.length == 0">
+                        <div class="bg-red-100 p-4 border-l-4 border-red-600 text-sm leading-6">
+                            No .kennel.json files found in the root.<br/>
+                            Make sure <b><u>not to touch or rename</u></b> the .kennel.json files after exporting them with Kennel.js.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div x-show="selectedExportFile != null" class="flex flex-col">
+
+        <div class="bg-white shadow border-b-2 border-indigo-500">
+            <div class="container mx-auto flex justify-between items-center py-6">
+                <h1 class="text-3xl text-gray-800 ml-3" x-text="selectedExportFile?.name"></h1>
+
+                <span
+                    @click="modalOpen = true"
+                    class="mr-3 flex items-center text-gray-500 hover:text-gray-700 rounded text-xs cursor-pointer"
+                    >
+                        <svg class="w-4 h-4 mr-1" style="margin-bottom: 2px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>Select different file</span>
+                </span>
+
+            </div>
+        </div>
+        
+        <div class="flex w-full justify-center my-6 container mx-auto">
+            <span class="flex w-full justify-around items-stretch mx-3 px-12 bg-white rounded-xl py-6 shadow">
+
+                <div class="flex items-center">
+                    <div class="bg-pink-200 rounded p-4 text-pink-600">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex">
+                        <span class="text-gray-400 mr-3">Tests: </span>
+                        <span class="text-gray-600 font-semibold" x-text="info.tests"></span>
+                    </div>
+                </div>
+                <div class="h-100 bg-gray-300" style="width: 1px;"></div>
+
+                <div class="flex items-center">
+                    <div class="bg-blue-200 rounded p-4 text-blue-600">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex">
+                        <span class="text-gray-400 mr-3">Clients: </span>
+                        <span class="text-gray-600 font-semibold" x-text="info.clients"></span>
+                    </div>
+                </div>
+                <div class="h-100 bg-gray-300" style="width: 1px;"></div>
+
+                <div class="flex items-center">
+                    <div class="bg-yellow-200 rounded p-4 text-yellow-600">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex">
+                        <span class="text-gray-400 mr-3">Messages: </span>
+                        <span class="text-gray-600 font-semibold" x-text="info.messages"></span>
+                    </div>
+                </div>
+
+            </span>
+        </div>
+
+        <div x-show="(selectedExportFile) && (selectedExportFile.type != 'puppy')" class="mx-auto flex w-full container">
+            <div class="flex flex-col w-1/2 m-3 bg-white rounded-xl overflow-hidden shadow">
+                <h1 class="border-b text-sm font-semibold w-full py-4 text-gray-600 text-center uppercase tracking-wide">
+                    Average duration foreach test
+                </h1>
+                <div class="stats text-center mt-3">loading...</div>
+                <canvas class="w-full p-3" id="duration_chart"></canvas>
+            </div>
+            <div class="flex flex-col w-1/2 m-3 bg-white rounded-xl overflow-hidden shadow">
+                <h1 class="border-b text-sm font-semibold w-full py-4 text-gray-600 text-center uppercase tracking-wide">
+                    Average minMaxRange foreach test
+                </h1>
+                <div class="stats text-center mt-3">loading...</div>
+                <canvas class="w-full p-3" id="variation_chart"></canvas>
+            </div>
+        </div>
+
+        <div class="container mx-auto mt-3 mb-12">
+            <div 
+                class="flex items-start mx-3"
+                :class="{'space-x-4' : isKennelFile}"
+                >
+                <div x-show="isKennelFile" class="w-1/6 flex-shrink-0 bg-white rounded-xl shadow overflow-hidden sticky top-0">
+                    
+                    <template x-for="lib in libs" :key="lib">
+                        <div @click="showChartOfLib(lib)" class="py-4 flex items-center hover:bg-blue-50 hover:text-blue-500 cursor-pointer">
+                            
+                            <div 
+                                class="w-5 h-5 bg-gray-200 rounded-full ml-6 mr-4 flex justify-center items-center"
+                                :class="{'bg-blue-500 text-white' : lib == selectedLib}">
+
+                                <svg x-show="lib == selectedLib" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+
+                            </div>
+
+                            <span x-text="lib"></span>
+                        </div>
+                    </template>
+
+                </div>
+                <div class="flex flex-col w-full bg-white rounded-xl shadow p-6">
+
+                    <div class="flex w-full">
+                        <div class="flex flex-col w-1/2 pr-3 border-r-2 border-gray-300">
+                            <div class="text-center w-full mb-3 text-gray-600 text-sm font-semibold">
+                                Durations foreach test in <span x-text="selectedLib"></span>
+                            </div>
+                            <div class="stats text-center mb-3"></div>
+                            <canvas class="lib-duration-chart"></canvas>
+                        </div>
+
+                        <div class="flex flex-col w-1/2 pl-3">
+                            <div class="text-center w-full mb-3 text-gray-600 text-sm font-semibold">
+                                Min-Max range foreach test in <span x-text="selectedLib"></span>
+                            </div>
+                            <div class="stats text-center mb-3"></div>
+                            <canvas class="lib-min-max-duration-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="flex w-full border-t-2 border-gray-300">
+                        <div class="flex flex-col w-1/2 pr-3 border-r-2 border-gray-300">
+                            <div class="my-3 text-center w-full text-gray-600 text-sm font-semibold">
+                                CPU Usage p/client foreach test in <span x-text="selectedLib"></span>
+                            </div>
+                            <canvas class="client-cpu-usage-chart"></canvas>
+                        </div>
+
+                        <div class="flex flex-col w-1/2 pl-3">
+                            <div class="my-3 text-center w-full text-gray-600 text-sm font-semibold">
+                                Server CPU Usage in <span x-text="selectedLib"></span>
+                            </div>
+                            <canvas class="server-cpu-usage-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="flex w-full border-t-2 border-gray-300">
+                        <div class="flex flex-col w-1/2 pr-3 border-r-2 border-gray-300">
+                            <div class="my-3 text-center w-full text-gray-600 text-sm font-semibold">
+                                Memory Usage p/client foreach test in <span x-text="selectedLib"></span>
+                            </div>
+                            <canvas class="client-memory-usage-chart"></canvas>
+                        </div>
+
+                        <div class="flex flex-col w-1/2 pl-3">
+                            <div class="my-3 text-center w-full text-gray-600 text-sm font-semibold">
+                                Server memory Usage in <span x-text="selectedLib"></span>
+                            </div>
+                            <canvas class="server-memory-usage-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="./libs/lodash.min.js"></script>
+    <script src="./libs/alpine.min.js" defer></script>
+    <script src="./libs/chart-2.8.0.js"></script>
+    <script src="./libs/chartjs-plugin-annotation.min.js"></script>
+    <script src="./ChartMaker.js"></script>
+    
+    <script>
+
+        setTimeout(() => {
+            document.body.classList.remove("invisible");
+        }, 100);
+
+        const getJSON = async (url) => {
+            let req = await fetch(url);
+            return await req.json();
+        }
+
+        function $exportFilesLoaders(){
+            return {
+                modalOpen: true,
+                exportFiles: [],
+                selectedExportFile: null,
+                isKennelFile: false,
+                init_exportFilesLoaders: async function(){
+                    this.$watch('modalOpen', value => document.body.classList.toggle('overflow-hidden'));
+                    this.exportFiles = (await getJSON("/Results.json")).map(n => ({'type' : 'kennel', 'name' : n}));
+                },
+                selectExportFile: async function(exportFile){
+                    this.selectedExportFile = exportFile;
+                    this.isKennelFile = exportFile.type == "kennel";
+                    this.modalOpen = false;
+
+                    this.loadKennel(exportFile.name);
+                }
+            }
+        }
+
+        function $chartLoader(){
+            return {
+                info: {
+                    tests : null,
+                    clients : null,
+                    messages : null,
+                },
+                libs: [],
+                selectedLib: null,
+                charts: {
+                    global: [],
+                    lib: [],
+                },
+                loadPuppy: async function (puppyFile){
+                    this.charts.global.forEach(c => c.destroy());
+                    window.results = [await getJSON(`/puppy/${puppyFile}`)];
+                    this.info = window.results[0].info;
+                    this.showChartOfLib(window.results[0].info.name)
+                },
+                loadKennel: async function (kennelFile){
+
+                    this.charts.global.forEach(c => c.destroy());
+
+                    window.results = await getJSON(`/${kennelFile}.kennel.json`);
+
+                    this.info = window.results[0].info;
+
+                    let labels = window.results.map(r => r.info.name);
+
+                    this.charts.global.push(BarChart({
+                        canvas: document.querySelector("#duration_chart"),
+                        color: '#52525B',
+                        labels,
+                        data: window.results.map(r => _.round(r.info.global.avg, 2)),
+                        showAnnotations: false,
+                    }))
+
+                    this.charts.global.push(BarChart({
+                        canvas: document.querySelector("#variation_chart"),
+                        color: '#52525B',
+                        labels,
+                        data: window.results.map(r => _.round(_.mean(r.tests.map(x => x.rangeMinMax)), 2)),
+                        showAnnotations: false,
+                    }))
+
+                    this.libs = labels;
+
+                    this.showChartOfLib(labels[0])
+
+                },
+                showChartOfLib: async function(lib){
+
+                    if (this.isKennelFile && (lib == this.selectedLib)) return
+                    
+                    this.selectedLib = lib;
+
+                    this.charts.lib.forEach(c => c.destroy());
+
+                    let libResults = window.results.find(r => r.info.name == lib);
+                    let labels = libResults.tests.map((t,i) => `Test ${i + 1}`);
+
+                    this.charts.lib.push(BarChart({
+                        canvas: document.querySelector(".lib-duration-chart"),
+                        color: '#52525B',
+                        labels,
+                        data: libResults.tests.map(t => _.round(t.avg, 2)),
+                        showAnnotations: true,
+                    }))
+
+                    this.charts.lib.push(BarChart({
+                        canvas: document.querySelector(".lib-min-max-duration-chart"),
+                        color: '#52525B',
+                        labels,
+                        data: libResults.tests.map(t => _.round(t.rangeMinMax, 2)),
+                        showAnnotations: true,
+                    }));
+
+                    let allTimestamps = libResults.tests.map(t => t.clientStats).flat().map(x => Math.ceil(x.timestamp / 1000));
+                    let beginToEndTimestamps = [];
+                    for (let i = Math.min(...allTimestamps); i <= Math.max(...allTimestamps); i++) {
+                        beginToEndTimestamps.push(i)
+                    }
+
+                    const getRandomRGBColor = () => `rgb(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)})`;
+                    const msToSec = (ms) => Math.ceil(ms / 1000)
+                    const bytesToMB = (bytes) => Math.round(bytes / 1024 / 1024, 2)
+
+                    this.charts.lib.push(LineChart({
+                        title: 'CPU Usage %',
+                        canvas: document.querySelector(".client-cpu-usage-chart"),
+                        labels: beginToEndTimestamps,
+                        datasets: [...libResults.tests.map(t => ({
+                            borderColor: getRandomRGBColor(),
+                            data: t.clientStats.map(cs => ({x: msToSec(cs.timestamp), y: cs.cpu}))
+                        }))]
+                    }))
+
+                    this.charts.lib.push(LineChart({
+                        title: 'Memory Usage (MB)',
+                        canvas: document.querySelector(".client-memory-usage-chart"),
+                        labels: beginToEndTimestamps,
+                        datasets: libResults.tests.map(t => ({
+                            borderColor: getRandomRGBColor(),
+                            data: t.clientStats.map(cs => ({x: msToSec(cs.timestamp), y: bytesToMB(cs.memory)}))
+                        }))
+                    }))
+
+                    this.charts.lib.push(LineChart({
+                        title: 'CPU Usage %',
+                        canvas: document.querySelector(".server-cpu-usage-chart"),
+                        labels: libResults.serverStats.map(t => msToSec(t.timestamp)),
+                        datasets: [{
+                            borderColor: `blue`,
+                            data: libResults.serverStats.map(st => ({x: msToSec(st.timestamp), y: st.cpu}))
+                        }]
+                    }))
+
+                    this.charts.lib.push(LineChart({
+                        title: 'Memory Usage (MB)',
+                        canvas: document.querySelector(".server-memory-usage-chart"),
+                        labels: libResults.serverStats.map(t => msToSec(t.timestamp)),
+                        datasets: [{
+                            borderColor: `blue`,
+                            data: libResults.serverStats.map(st => ({x: msToSec(st.timestamp), y: bytesToMB(st.memory)})),
+                        }]
+                    }))
+                }
+            }
+        }
+
+        function main() {
+            return {
+                ...$exportFilesLoaders(),
+                ...$chartLoader(),
+                init : async function(){
+                    Object.keys(this).filter(k => k.includes("init_")).forEach(k => {
+                        this[k]();
+                    });
+                },
+            }
+        }
+
+        main();
+    </script>
+</body>
+</html>
