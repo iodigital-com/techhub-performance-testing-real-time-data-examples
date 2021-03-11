@@ -1,6 +1,6 @@
 # Real-time protocol performance test results
 
-View interactive results [here](..).
+View interactive results [here](https://isaaceindhoven.github.io/realtime-ui-updates/).
 
 ## Introduction
 

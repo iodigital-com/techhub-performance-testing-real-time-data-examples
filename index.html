@@ -22,7 +22,7 @@
                     <p class="mb-4">
                         This webpage was created to easily visualize the results of the performance tests in clear and understandable graphs.
                     </p>
-                    <p>View <a href="#" class="text-blue-500 hover:underline hover:text-blue-600 cursor-pointer">README.md</a> for more information.</p>
+                    <p>View <a href="https://github.com/isaaceindhoven/realtime-ui-updates/blob/master/README.md" class="text-blue-500 hover:underline hover:text-blue-600 cursor-pointer">README.md</a> for more information.</p>
                 </div>
 
                 <div @click.away="if (selectedExportFile != null) modalOpen = false" class="flex flex-col bg-white rounded-xl p-8">
@@ -257,7 +257,7 @@
                 isKennelFile: false,
                 init_exportFilesLoaders: async function(){
                     this.$watch('modalOpen', value => document.body.classList.toggle('overflow-hidden'));
-                    this.exportFiles = (await getJSON("/Results.json")).map(n => ({'type' : 'kennel', 'name' : n}));
+                    this.exportFiles = (await getJSON("./Results.json")).map(n => ({'type' : 'kennel', 'name' : n}));
                 },
                 selectExportFile: async function(exportFile){
                     this.selectedExportFile = exportFile;
@@ -292,7 +292,7 @@
 
                     this.charts.global.forEach(c => c.destroy());
 
-                    window.results = await getJSON(`/${kennelFile}.kennel.json`);
+                    window.results = await getJSON(`./${kennelFile}.kennel.json`);
 
                     this.info = window.results[0].info;
 
